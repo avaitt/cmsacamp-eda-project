@@ -1,0 +1,376 @@
+---
+title: 'EDA Project: MLB data'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+This project will begin on Monday June 7th, and __conclude with a 10-15 minute presentation one week later on Thursday, June 17th during lab from 2:30 to 4 PM EDT__. The goal of this project is to practice understanding the structure of a dataset, and to practice generating and evaluating hypotheses using fundamental EDA and data visualization techniques.
+
+## Deliverables
+
+Your team is expected to produce `R Markdown` slides (an example template will be provided shortly) to accompany your 10-15 minute presentation with the following information:
+
+* Explanation of the data structure of the dataset,
+* __Three hypotheses__ you are interested in exploring,
+* __Three data visualizations__ exploring the hypotheses, at least two of which must be multivariate.  __Each visualization must be in a different format__ from the other two, and you must have at least one categorical and one continuous visualization.
+* __One clustering example__,
+* Conclusions reached for the hypotheses based on your EDA and data visualizations,
+
+## Timeline
+
+There will be two submission deadlines:
+
+**Friday, June 11th @ 4:00pm EST** - Each student will push their individual code for the project thus far to their GitHub accounts for review. We will then provide feedback on the code submitted.
+
+**Thursday, June 17 @ 12:00pm EST** - Slides and full code must be completed and ready for presentation. Send your slides to Ron's email ([ryurko@andrew.cmu.edu](mailto:ryurko@andrew.cmu.edu)).  All code, visualizations, and presentations must be made in `R`. Take advantage of examples from lecture and the presentation template, but also feel free to explore material online that may be relevant!
+
+
+## Data
+
+Your team is assigned the [__MLB batted balls data__](http://www.stat.cmu.edu/cmsac/sure/2021/materials/data/eda_projects/mlb_batted_balls_2021.csv). This dataset contains all batted balls from the current 2021 MLB season, through June 5th, courtesy of [baseballsavant.com](https://baseballsavant.mlb.com/) and accessed using the [`baseballr`](http://billpetti.github.io/baseballr/) package. The code chunk at the end shows how this dataset was constructed in `R`.
+
+Each row of the dataset corresponds to a batted ball and has the following columns:
+
+* `player_name`: Name of the batter in Last, First format
+* `batter`: Unique identifier for the batter
+* `stand`: handedness of hitter, either `L` (left) or `R` (right), note that switch hitters are in this table but they'll switch depending on the pitcher,
+* `events`: categorical event denoting the outcome of the batted ball,
+* `hc_x`: horizontal coordinate of where a batted ball is first touched by a fielder,
+* `hc_y`: vertical coordinate of where a batted ball is first touched by a fielder (note you should take the multiply this by -1 when plotting),
+* `hit_distance_sc`: distance of the batted ball in feet according to Statcast,
+* `launch_speed`: exit velocity of the ball off the bat (mph),
+* `launch_angle`: the vertical angle of the ball off the bat measured from a line parallel to the ground,
+* `hit_location`: positional number of the player who fielded the ball, possible values are 1-9 for each player (see [here](https://en.wikipedia.org/wiki/Baseball_positions)),
+* `bb_type`: batted ball type,
+* `barrel`: indicator if the batted ball was a ["barrel"](https://www.mlb.com/glossary/statcast/barrel),
+* `pitch_type`: type of pitch thrown according to MLB's algorithm,
+* `release_speed`: speed of the pitch measured when the ball is released (mph),
+* `effective_speed`: perceived velocity of the ball, i.e., the velocity of the pitch is adjusted for how close it is to home when it is released (mph)
+* `if_fielding_alignment`: type of infield shift by defense
+* `of_fielding_alignment`: type of outfield shift by defense
+* `game_date`: date of the game (mm/dd/yyyy)
+* `balls`: number of balls in the count,
+* `strikes`: number of strikes in the count,
+* `outs_when_up`: number of outs when the batter is up,
+* `on_1b`: unique identifier for a runner on first base (if there is one),
+* `on_2b`: unique identifier for a runner on second base (if there is one),
+* `on_3b`: unique identifier for a runner on third base (if there is one),
+* `inning`: the inning number,
+* `inning_topbot`: top or bottom of the inning,
+* `home_score`: home team score before batted ball,
+* `away_score`: away team score before batted ball,  
+* `post_home_score`: home team score after batted ball,
+* `post_away_score`: away team score after batted ball,  
+* `des`: description of the batted ball and play.
+
+Note that a full glossary of the features available from MLB's Statcast data can be found [here](https://app.box.com/v/statcast-pitchfx-glossary-pett).
+
+
+## Code to build dataset
+
+```{r}
+# install.packages("devtools")
+# devtools::install_github("BillPetti/baseballr")
+```
+
+
+
+```{r}
+library(baseballr)
+library(tidyverse)
+
+s1 <- scrape_statcast_savant_batter_all("2021-04-01", 
+
+                                        "2021-04-07") %>%
+  dplyr::filter(type == "X")
+
+s2 <- scrape_statcast_savant_batter_all("2021-04-08", 
+
+                                        "2021-04-14") %>%
+  dplyr::filter(type == "X")
+
+s3 <- scrape_statcast_savant_batter_all("2021-04-15", 
+
+                                        "2021-04-22") %>%
+  dplyr::filter(type == "X")
+
+s4 <- scrape_statcast_savant_batter_all("2021-04-23", 
+
+                                        "2021-04-30") %>%
+  dplyr::filter(type == "X")
+
+
+s5 <- scrape_statcast_savant_batter_all("2021-05-01",
+
+                                        "2021-05-06") %>%
+  dplyr::filter(type == "X")
+
+s6 <- scrape_statcast_savant_batter_all("2021-05-07",
+
+                                        "2021-05-13") %>%
+  dplyr::filter(type == "X")
+
+s7 <- scrape_statcast_savant_batter_all("2021-05-14",
+
+                                        "2021-05-20") %>%
+  dplyr::filter(type == "X")
+
+s8 <- scrape_statcast_savant_batter_all("2021-05-21",
+
+                                        "2021-05-27") %>%
+  dplyr::filter(type == "X")
+
+s9 <- scrape_statcast_savant_batter_all("2021-05-28",
+
+                                        "2021-06-03") %>%
+  dplyr::filter(type == "X")
+
+s10 <- scrape_statcast_savant_batter_all("2021-06-04",
+
+                                         "2021-06-10") %>%
+  dplyr::filter(type == "X")
+
+s11 <- scrape_statcast_savant_batter_all("2021-06-11",
+
+                                         "2021-06-17") %>%
+  dplyr::filter(type == "X")
+
+mlb_batted_balls_2021 <- rbind(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10,s11)
+```
+
+```{r}
+unique(mlb_batted_balls_2021$game_date)
+```
+
+```{r, eval = FALSE}
+library(baseballr)
+library(tidyverse)
+
+# Scrape all data for this season:
+# mlb_batted_balls_2021 <-
+#   scrape_statcast_savant_batter_all(start_date = "2021-05-31",
+#                                     end_date = "2021-06-20") %>%
+#   dplyr::filter(type == "X")
+
+mlb_batted_balls_2021 <- mlb_batted_balls_2021 %>%
+  # Only select columns regarding the batted ball with discrete pitch type
+  # information (except for the speed) for now: 
+  dplyr::select(# Batter info:
+                player_name, batter, stand, 
+                # Batted ball info:
+                events, hc_x, hc_y, hit_distance_sc, launch_speed, launch_angle,
+                hit_location, bb_type, barrel,
+                # Pitch info:
+                pitch_type, release_speed, effective_speed, 
+                # Shift info:
+                if_fielding_alignment, of_fielding_alignment,
+                # Game level context:
+                game_date, balls, strikes, outs_when_up, on_1b, on_2b, on_3b, 
+                inning, inning_topbot, home_score, away_score, post_home_score,
+                post_away_score, home_team, away_team,
+                # Description of play:
+                des)
+
+# if inning_topbot is Top that row corresponds to the away team
+# if inning_topbot is Bot that row corresponds to the home team
+mlb_batted_balls_2021
+
+```
+
+
+
+```{r}
+mlb_batted_balls_2021$row_team <- 
+  ifelse(mlb_batted_balls_2021$inning_topbot == 'Top', mlb_batted_balls_2021$away_team, 
+         mlb_batted_balls_2021$home_team)
+head(mlb_batted_balls_2021)
+```
+
+```{r}
+unique(mlb_batted_balls_2021$game_date)
+```
+
+
+```{r}
+length(unique(mlb_batted_balls_2021$row_team))
+```
+
+
+```{r}
+#devtools::install_github("bdilday/GeomMLBStadiums")
+library(GeomMLBStadiums)
+library(ggplot2)
+library(dplyr)
+```
+
+```{r}
+head(MLBStadiumsPathData)
+```
+
+
+```{r}
+length(unique(MLBStadiumsPathData$team))
+```
+```{r}
+unique(MLBStadiumsPathData$team)
+```
+
+```{r}
+ggplot() + 
+  geom_mlb_stadium(stadium_ids = "all_mlb", 
+                   stadium_segments = "all") + 
+  facet_wrap(~team) + 
+  coord_fixed() + 
+  theme_void()
+```
+```{r}
+# my_list <- list('OAK' = 'angels',
+#                 name2 = your_comp2)
+```
+
+```{r}
+unique(mlb_batted_balls_2021$row_team)
+```
+
+```{r}
+keys <- c("OAK", "LAD", "KC",  "MIA", "STL", "COL", "ARI", "SEA", "NYY", "MIN", "TB",  
+          "SD",  "TEX", "BOS" ,"CWS" ,"SF"  ,"ATL", "TOR", "MIL" ,"PHI", "PIT", "DET", 
+          "CHC", "NYM", "CIN" ,"BAL", "WSH", "CLE", "HOU","LAA")
+values <- c("athletics","dodgers", "royals","marlins","cardinals","rockies","diamondbacks","mariners","yankees","twins","rays","padres","rangers","red sox",
+            "white sox","giants","braves","blue jays","brewers","phillies","pirates","tigers","cubs","mets","reds","orioles","nationals","indians","astros",
+            "angels")
+names(values) <- keys
+my_list <- as.list(values)
+my_list
+```
+
+
+
+
+```{r}
+subset <- unique(mlb_batted_balls_2021[c("home_team", "away_team")])
+subset
+```
+
+
+```{r}
+subset2 <- subset[!duplicated(t(apply(subset, 1, sort))),]
+```
+
+
+```{r}
+# rowwise <- function(dat) unique(t(apply(dat, 1, sort)))
+# subset2 <- data.frame(rowwise(subset))
+# names(subset2)[1] <- "home_team"
+# names(subset2)[2] <- "away_team"
+# subset2
+```
+
+```{r}
+library(dplyr)
+x1 <- setdiff(subset, subset2)
+x1
+```
+
+```{r}
+library(data.table)
+x2 <- copy(x1)
+x2[1:2] <- x2[2:1]
+x2
+```
+
+```{r}
+valid_games <- rbind(x1, x2)
+valid_games$identifier <- with(valid_games, paste0(home_team, away_team))
+valid_games
+```
+
+```{r}
+mlb_batted_balls_2021$identifier <- with(mlb_batted_balls_2021, paste0(home_team, away_team))
+```
+
+
+```{r}
+valid_data <- subset(mlb_batted_balls_2021, identifier %in% valid_games$identifier)
+```
+
+```{r}
+valid_data <- read.csv('valid_data.csv')
+```
+
+```{r}
+dim(valid_data)
+```
+
+
+```{r}
+unique(valid_data[c("home_team", "away_team")])
+```
+```{r}
+valid_data$month <- months(as.Date(valid_data$game_date))
+unique(valid_data$month)
+```
+```{r}
+# write.csv(valid_data, "C:\\Users\\avija\\Documents\\CMSAC_2021\\cmsacamp-eda-project\\valid_data.csv", row.names = FALSE)
+```
+
+
+
+```{r}
+test_data <- valid_data %>% filter(row_team %in% c('ARI', 'COL'), home_team == 'COL', away_team == 'ARI')
+batted_ball_data <- copy(test_data)
+unique(batted_ball_data$game_date)
+dates <- length(unique(batted_ball_data$game_date))
+
+if (dates > 2){
+  col_val = ceiling(dates / 2)
+  row_val = 2
+} else {
+  col_val = 2
+  row_val = 1
+}
+
+```
+
+
+```{r}
+batted_ball_data$team <- rep(c(my_list[[batted_ball_data$home_team[1]]]), each=dim(batted_ball_data)[1])
+
+batted_ball_data$row_team <- factor(batted_ball_data$row_team, levels = c("COL", "ARI"))
+
+batted_ball_data %>% mlbam_xy_transformation() %>% 
+    ggplot(aes(x=hc_x_, y=hc_y_, color=row_team)) + 
+    geom_spraychart(stadium_ids = unique(batted_ball_data$team),
+                    stadium_transform_coords = TRUE, 
+                    stadium_segments = "all", na.rm = TRUE) + 
+    facet_wrap(~ game_date, ncol = col_val, nrow = row_val) + 
+    scale_fill_discrete(breaks=c("COL", "ARI")) +
+    theme_void() + 
+    coord_fixed() + 
+    labs(color = "Team")
+```
+
+```{r}
+batted_ball_data$team <- rep(c(my_list[[batted_ball_data$home_team[1]]]), each=dim(batted_ball_data)[1])
+
+# batted_ball_data$row_team <- factor(batted_ball_data$row_team, levels = c("COL", "ARI"))
+
+batted_ball_data %>% mlbam_xy_transformation() %>% 
+    ggplot(aes(x=hc_x_, y=hc_y_, color=row_team)) + 
+    geom_spraychart(stadium_ids = unique(batted_ball_data$team),
+                    stadium_transform_coords = TRUE, 
+                    stadium_segments = "all", na.rm = TRUE) + 
+    facet_wrap(~ game_date, ncol = col_val, nrow = row_val) + 
+    scale_fill_discrete(breaks=c("COL", "ARI")) +
+    theme_void() + 
+    coord_fixed() + 
+    labs(color = "Team")
+```
+
