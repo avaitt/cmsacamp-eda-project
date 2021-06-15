@@ -1,11 +1,3 @@
-
-# l <- NULL
-# l$name <- c('b','e','d','b','b','d','e')
-# l$age <- c(20,20,21,21,20,22,22)
-# l <- as.data.frame(l)
-# l$name <- as.character(l$name)
-# l$age <- as.numeric(l$age)
-
 library(shiny)
 
 keys <- c("OAK", "LAD", "KC",  "MIA", "STL", "COL", "ARI", "SEA", "NYY", "MIN", "TB",  
@@ -41,7 +33,7 @@ y <- unlist(y_list)
 #bind x and y into a dataframe with two columns, using cbind() (column bind)
 l <- NULL
 l <- as.data.frame(cbind(x,y))
-colnames(l) <- c("name","age")
+colnames(l) <- c("home","away")
 
 
 server <- shinyServer(function(input,output, session){
@@ -50,7 +42,7 @@ server <- shinyServer(function(input,output, session){
     if(input$Box1 == "All"){
       l
     }else{
-      l[which(l$name == input$Box1),]
+      l[which(l$home == input$Box1),]
     }
   })
   
@@ -58,23 +50,23 @@ server <- shinyServer(function(input,output, session){
     if (input$Box2 == "All"){
       l
     }else{
-      l[which(l$age == input$Box2),]
+      l[which(l$away == input$Box2),]
     }
   })
   
   observe({
     
     if(input$Box1 != "All"){
-      updateSelectInput(session,"Box2","Away Team", choices = c(unique(data1()$age)))
+      updateSelectInput(session,"Box2","Away Team", choices = c(unique(data1()$away)))
     }
     
     else if(input$Box2 != 'All'){
-      updateSelectInput(session,"Box1","Home Team", choices = c(unique(data2()$name)))
+      updateSelectInput(session,"Box1","Home Team", choices = c(unique(data2()$home)))
     }
     
     else if (input$Box1 == "All" & input$Box2 == "All"){
-      updateSelectInput(session,"Box2","Away Team", choices = c(unique(l$age)))
-      updateSelectInput(session,"Box1","Home Team", choices = c(unique(l$name)))
+      updateSelectInput(session,"Box2","Away Team", choices = c(unique(l$away)))
+      updateSelectInput(session,"Box1","Home Team", choices = c(unique(l$home)))
     }
   })
   
@@ -89,7 +81,6 @@ server <- shinyServer(function(input,output, session){
       l
     }
     else{
-      # l[which(l$age== input$Box2 & l$name == input$Box1),]
       test_data <- valid_data %>% filter(row_team %in% c(input$Box1, input$Box2), home_team == input$Box1, away_team == input$Box2)
       batted_ball_data <- copy(test_data)
       dates <- length(unique(batted_ball_data$game_date))
@@ -134,8 +125,8 @@ ui <-shinyUI(fluidPage(
   titlePanel(h4('Test Title', align = "center")),
   
   sidebarPanel(
-    selectInput("Box1","Home Team", choices = c(unique(l$name))),
-    selectInput("Box2","Away Team", choices = c(unique(l$age))),
+    selectInput("Box1","Home Team", choices = c(unique(l$home))),
+    selectInput("Box2","Away Team", choices = c(unique(l$away))),
     actionButton("do", "Submit"), width=2),
   
   mainPanel(
