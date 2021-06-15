@@ -8,7 +8,7 @@ values <- c("athletics","dodgers", "royals","marlins","cardinals","rockies","dia
             "angels")
 names(values) <- keys
 my_list <- as.list(values)
-shhh <- suppressPackageStartupMessages # It's a library, so shhh!
+shhh <- suppressPackageStartupMessages 
 valid_data <- read.csv('valid_data.csv')
 
 library(shiny)
@@ -92,10 +92,10 @@ server <- shinyServer(function(input,output, session){
         row_val = 1
       }
       batted_ball_data$team <- rep(c(my_list[[batted_ball_data$home_team[1]]]), each=dim(batted_ball_data)[1])
-      batted_ball_data$row_team <- factor(batted_ball_data$row_team, levels = c(input$Box1, input$Box2))
+      #batted_ball_data$row_team <- factor(batted_ball_data$row_team, levels = c(input$Box1, input$Box2))
 
       batted_ball_data %>% mlbam_xy_transformation() %>%  
-        ggplot(aes(x=hc_x_, y=hc_y_, color=row_team)) + 
+        ggplot(aes(x=hc_x_, y=hc_y_, color=team)) + 
         geom_spraychart(stadium_ids = unique(batted_ball_data$team),
                         stadium_transform_coords = TRUE, 
                         stadium_segments = "all", na.rm = TRUE, size = 3) + 
@@ -105,7 +105,9 @@ server <- shinyServer(function(input,output, session){
               legend.title = element_text(size=15), 
               legend.text = element_text(size=15)) +  
         coord_fixed() + 
-        labs(color = "Team")
+        #labs(color = "Team")
+        theme(legend.position="none")
+        
       
     }
   })
