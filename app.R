@@ -57,21 +57,20 @@ server <- shinyServer(function(input,output, session){
   observe({
     
     if(input$Box1 != "All"){
-      updateSelectInput(session,"Box2","Away Team", choices = c(unique(data1()$away)))
+      updateSelectInput(session,"Box2","Team 2", choices = c(unique(data1()$away)))
     }
     
     else if(input$Box2 != 'All'){
-      updateSelectInput(session,"Box1","Home Team", choices = c(unique(data2()$home)))
+      updateSelectInput(session,"Box1","Team 1", choices = c(unique(data2()$home)))
     }
     
     else if (input$Box1 == "All" & input$Box2 == "All"){
-      updateSelectInput(session,"Box2","Away Team", choices = c(unique(l$away)))
-      updateSelectInput(session,"Box1","Home Team", choices = c(unique(l$home)))
+      updateSelectInput(session,"Box2","Team 2", choices = c(unique(l$away)))
+      updateSelectInput(session,"Box1","Team 1", choices = c(unique(l$home)))
     }
   })
   
   
-
   data3 <- reactive({
     if(input$Box2 == "All"){
       data1()
@@ -92,23 +91,21 @@ server <- shinyServer(function(input,output, session){
         row_val = 1
       }
       batted_ball_data$team <- rep(c(my_list[[batted_ball_data$home_team[1]]]), each=dim(batted_ball_data)[1])
-      #batted_ball_data$row_team <- factor(batted_ball_data$row_team, levels = c(input$Box1, input$Box2))
+      batted_ball_data$row_team <- factor(batted_ball_data$row_team, levels = c(input$Box1, input$Box2))
 
       batted_ball_data %>% mlbam_xy_transformation() %>%  
-        ggplot(aes(x=hc_x_, y=hc_y_, color=team)) + 
+        ggplot(aes(x=hc_x_, y=hc_y_, color=row_team)) + 
         geom_spraychart(stadium_ids = unique(batted_ball_data$team),
                         stadium_transform_coords = TRUE, 
-                        stadium_segments = "all", na.rm = TRUE, size = 3) + 
-        facet_wrap(~ game_date, ncol = col_val, nrow = row_val) + 
+                        stadium_segments = "all", na.rm = TRUE, size = 4)+
+        # facet_wrap(~ game_date, ncol = col_val, nrow = row_val) + 
         theme_void() + 
         theme(strip.text.x = element_text(size = 16),   
               legend.title = element_text(size=15), 
               legend.text = element_text(size=15)) +  
-        coord_fixed() + 
-        #labs(color = "Team")
-        theme(legend.position="none")
-        
-      
+        coord_fixed() +
+        labs(color = "Team")
+        #theme(legend.position="none")
     }
   })
   
@@ -117,18 +114,16 @@ server <- shinyServer(function(input,output, session){
     input$do
     isolate(data3())
 
-  }, height = 700, width = 1100 )
+  }, height = 700, width = 1100)
   
 })
-
-
 
 ui <-shinyUI(fluidPage(
   titlePanel(h4('Test Title', align = "center")),
   
   sidebarPanel(
-    selectInput("Box1","Home Team", choices = c(unique(l$home))),
-    selectInput("Box2","Away Team", choices = c(unique(l$away))),
+    selectInput("Box1","Team 1", choices = c(unique(l$home))),
+    selectInput("Box2","Team 2", choices = c(unique(l$away))),
     actionButton("do", "Submit"), width=2),
   
   mainPanel(
