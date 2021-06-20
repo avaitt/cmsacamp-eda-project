@@ -142,7 +142,7 @@ s11 <- scrape_statcast_savant_batter_all("2021-06-11",
                                          "2021-06-17") %>%
   dplyr::filter(type == "X")
 
-mlb_batted_balls_2021 <- rbind(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10,s11)
+mlb_batted_balls_2021 <- rbind(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11)
 ```
 
 ```{r}
@@ -194,12 +194,11 @@ head(mlb_batted_balls_2021)
 ```
 
 ```{r}
-unique(mlb_batted_balls_2021$game_date)
+dim(mlb_batted_balls_2021)
 ```
 
-
 ```{r}
-length(unique(mlb_batted_balls_2021$row_team))
+mlb_batted_balls_2021 <- mlb_batted_balls_2021 %>% filter(home_team != 'TOR')
 ```
 
 
@@ -234,211 +233,8 @@ ggplot() +
 
 
 ```{r}
-# my_list <- list('OAK' = 'angels',
-#                 name2 = your_comp2)
-```
-
-```{r}
-unique(mlb_batted_balls_2021$row_team)
-```
-
-```{r}
-keys <- c("OAK", "LAD", "KC",  "MIA", "STL", "COL", "ARI", "SEA", "NYY", "MIN", "TB",  
-          "SD",  "TEX", "BOS" ,"CWS" ,"SF"  ,"ATL", "TOR", "MIL" ,"PHI", "PIT", "DET", 
-          "CHC", "NYM", "CIN" ,"BAL", "WSH", "CLE", "HOU","LAA")
-values <- c("athletics","dodgers", "royals","marlins","cardinals","rockies","diamondbacks","mariners","yankees","twins","rays","padres","rangers","red sox",
-            "white sox","giants","braves","blue jays","brewers","phillies","pirates","tigers","cubs","mets","reds","orioles","nationals","indians","astros",
-            "angels")
-names(values) <- keys
-my_list <- as.list(values)
-my_list
-```
-
-
-
-```{r}
-subset <- unique(mlb_batted_balls_2021[c("home_team", "away_team")])
-subset
-```
-
-
-```{r}
-subset2 <- subset[!duplicated(t(apply(subset, 1, sort))),]
-```
-
-
-```{r}
-# rowwise <- function(dat) unique(t(apply(dat, 1, sort)))
-# subset2 <- data.frame(rowwise(subset))
-# names(subset2)[1] <- "home_team"
-# names(subset2)[2] <- "away_team"
-# subset2
-```
-
-```{r}
-library(dplyr)
-x1 <- setdiff(subset, subset2)
-x1
-```
-
-```{r}
-library(data.table)
-x2 <- copy(x1)
-x2[1:2] <- x2[2:1]
-x2
-```
-
-```{r}
-valid_games <- rbind(x1, x2)
-valid_games$identifier <- with(valid_games, paste0(home_team, away_team))
-valid_games
-```
-
-```{r}
-mlb_batted_balls_2021$identifier <- with(mlb_batted_balls_2021, paste0(home_team, away_team))
-```
-
-
-```{r}
-valid_data <- subset(mlb_batted_balls_2021, identifier %in% valid_games$identifier)
-```
-
-```{r}
-valid_data <- read.csv('valid_data.csv')
-```
-
-```{r}
-dim(valid_data)
-```
-
-
-```{r}
-unique(valid_data[c("home_team", "away_team")])
-```
-
-```{r}
-valid_data$month <- months(as.Date(valid_data$game_date))
-unique(valid_data$month)
-```
-
-```{r}
-write.csv(mlb_batted_balls_2021, "C:\\Users\\avija\\Documents\\CMSAC_2021\\cmsacamp-eda-project\\mlb_data.csv", 
-          row.names = FALSE)
-```
-
-```{r}
-head(mlb_batted_balls_2021)
-```
-
-
-```{r}
-# this gives us baseball data that was PLAYED in COL Field
-test_data <- mlb_batted_balls_2021 %>% filter(home_team == 'COL')
-batted_ball_data <- copy(test_data)
-unique(batted_ball_data$game_date)
-dates <- length(unique(batted_ball_data$game_date))
-```
-
-```{r}
-batted_ball_data$team <- rep(c(my_list[[batted_ball_data$home_team[1]]]), each=dim(batted_ball_data)[1])
-
-# batted_ball_data$row_team <- factor(batted_ball_data$row_team, levels = c("COL", "ARI"))
-
-batted_ball_data %>% mlbam_xy_transformation() %>% 
-    ggplot(aes(x = hc_x_, y = hc_y_, z = batted_ball_data$"effective_speed", group = -1)) + 
-      stat_summary_hex(color="gray", na.rm =TRUE, fun=median) + #<
-      scale_fill_distiller(palette = "YlGnBu", direction=1, name = "x") +
-      geom_mlb_stadium(stadium_ids = unique(batted_ball_data$team), 
-                       stadium_transform_coords = TRUE, stadium_segments = "all", na.rm=TRUE) +
-      coord_fixed() +
-      theme_void()
-      
-  
-```
-
-
-
-```{r}
-batted_ball_data %>% mlbam_xy_transformation() %>%
-  ggplot(aes(x = hc_x_, y = hc_y_)) +
-    geom_hex(color="gray", na.rm=TRUE) +
-    scale_fill_distiller(palette = "YlGnBu", direction=1, name = "x") +
-    geom_mlb_stadium(stadium_ids = unique(batted_ball_data$team), stadium_transform_coords = TRUE, stadium_segments = "all") +
-    coord_fixed() +
-    theme_void()
-```
-
-```{r}
-mean(batted_ball_data$effective_speed)
-```
-
-
-```{r}
-test_data <- mlb_batted_balls_2021 %>% filter(home_team == 'SEA')
-batted_ball_data <- copy(test_data)
-unique(batted_ball_data$game_date)
-dates <- length(unique(batted_ball_data$game_date))
-```
-
-```{r}
-batted_ball_data$team <- rep(c(my_list[[batted_ball_data$home_team[1]]]), each=dim(batted_ball_data)[1])
-
-# batted_ball_data$row_team <- factor(batted_ball_data$row_team, levels = c("COL", "ARI"))
-
-batted_ball_data %>% mlbam_xy_transformation() %>% 
-    ggplot(aes(x = hc_x_, y = hc_y_, z = home_runs, group = -1)) + 
-      stat_summary_hex(color="gray", na.rm =TRUE, fun=median) + #<
-      scale_fill_distiller(palette = "YlGnBu", direction=1) +
-      geom_mlb_stadium(stadium_ids = unique(batted_ball_data$team), 
-                       stadium_transform_coords = TRUE, stadium_segments = "all", na.rm=TRUE) +
-      coord_fixed() +
-      theme_void()
-```
-
-
-```{r}
-batted_ball_data %>% mlbam_xy_transformation() %>%
-  ggplot(aes(x = hc_x_, y = hc_y_)) +
-    geom_hex(color="gray", na.rm=TRUE) +
-    scale_fill_distiller(palette = "YlGnBu", direction=1) +
-    geom_mlb_stadium(stadium_ids = unique(batted_ball_data$team), stadium_transform_coords = TRUE, stadium_segments = "all") +
-    coord_fixed() +
-    theme_void()
-```
-```{r}
-metric <- c("Launch Angle", 'Hit Distance', "Effective Speed", "Launch Speed")
-vals <- c("launch_angle", 'hit_distance_sc', "effective_speed", "launch_speed")
-names(vals) <- metric
-my_list2 <- as.list(vals)
-my_list2
-```
-```{r}
-val <- my_list2[['Launch Speed']]
-batted_ball_data$'launch_speed'
-```
-
-```{r}
-rankings <- c(1:30)
-rankings
-```
-
-```{r}
-ecdf(rankings)(29)
-
-```
-```{r}
-c("Launch Angle", 'Hit Distance', "Effective Speed", "Launch Speed")
-```
-
-```{r}
-teams[6]
-```
-```{r}
-mlb_batted_balls_2021 %>% filter(home_team == "WAS")
-```
-```{r}
 teams <- c("PHI", "OAK", "TB", "MIA", "WSH", "SF", "NYY", "SD", "NYM", "SEA", "BOS",
-           "HOU", "BAL", "LAA", "TOR", "STL", "CIN", "LAD", "TEX", "DET", "CHC",
+           "HOU", "BAL", "LAA", "STL", "CIN", "LAD", "TEX", "DET", "CHC",
            "CWS", "MIL", "CLE", "PIT", "MIN", "KC", "ATL", "ARI", "COL")
 
 # stadiums <- c("Citizens Bank Park", "Oakland Coliseum", "Tropicana Field", "Marlins Park", "Nationals Park", "Oracle Park", 
@@ -448,12 +244,12 @@ teams <- c("PHI", "OAK", "TB", "MIA", "WSH", "SF", "NYY", "SD", "NYM", "SEA", "B
 #              "Globe Life Field", "Comerica Park", "Wrigley Field", "Guaranteed Rate Field", "Miller Park", "Progressive Field", "PNC Park", 
 #              "Target Field", "Kauffman Stadium", "Truist Park", "Chase Field", "Coors Field")
 
-altitude_rankings <- c(1:30)
+altitude <- c(1:29)
 
-outfield_walls <- 31 - c(6,25,20,24,13,2,5,7,21,22,1,3,10,16,29,28,14,
-                    27,8,15,18,16,23,12,4,11,30,19,9,17)
+outfield_height <- 30 - c(6,25,20,24,13,2,5,7,21,22,1,3,10,16,28,14,
+                         27,8,15,18,26,23,12,4,11,29,19,9,17)
 
-outfield_walls
+length(outfield_height)
 ```
 
 ```{r}
@@ -502,48 +298,48 @@ mlb_batted_balls_2021 <- mlb_batted_balls_2021 %>%
 
 ```{r}
 bases_covered = c()
-for (i in 1:30) {
+for (i in 1:29) {
   test <- mlb_batted_balls_2021 %>% filter(home_team == teams[i])
   # data <- sample_n(test, 1000)
   # outliers <- boxplot(data$hit_distance_sc, plot=FALSE)$out
   # data <- data[-which(data$hit_distance_sc %in% outliers),]
-  val <- sum(test$bases_covered, na.rm = TRUE)
+  val <- mean(test$bases_covered, na.rm = TRUE)
   bases_covered[i] <- val
 }
 bases_covered
 ```
 ```{r}
 home_runs = c()
-for (i in 1:30) {
+for (i in 1:29) {
   test <- mlb_batted_balls_2021 %>% filter(home_team == teams[i])
   # data <- sample_n(test, 1000)
   # outliers <- boxplot(data$hit_distance_sc, plot=FALSE)$out
   # data <- data[-which(data$hit_distance_sc %in% outliers),]
-  val <- sum(test$home_runs == 4, na.rm = TRUE)
+  val <- mean(test$home_runs, na.rm = TRUE)
   home_runs[i] <- val
 }
 home_runs
 ```
 ```{r}
 triples = c()
-for (i in 1:30) {
+for (i in 1:29) {
   test <- mlb_batted_balls_2021 %>% filter(home_team == teams[i])
   # data <- sample_n(test, 1000)
   # outliers <- boxplot(data$hit_distance_sc, plot=FALSE)$out
   # data <- data[-which(data$hit_distance_sc %in% outliers),]
-  val <- sum(test$triple == 3, na.rm = TRUE)
+  val <- mean(test$triple, na.rm = TRUE)
   triples[i] <- val
 }
 triples
 ```
 ```{r}
 doubles = c()
-for (i in 1:30) {
+for (i in 1:29) {
   test <- mlb_batted_balls_2021 %>% filter(home_team == teams[i])
   # data <- sample_n(test, 1000)
   # outliers <- boxplot(data$hit_distance_sc, plot=FALSE)$out
   # data <- data[-which(data$hit_distance_sc %in% outliers),]
-  val <- sum(test$double == 2, na.rm = TRUE)
+  val <- mean(test$double, na.rm = TRUE)
   doubles[i] <- val
 }
 doubles
@@ -551,12 +347,12 @@ doubles
 
 ```{r}
 singles = c()
-for (i in 1:30) {
+for (i in 1:29) {
   test <- mlb_batted_balls_2021 %>% filter(home_team == teams[i])
   # data <- sample_n(test, 1000)
   # outliers <- boxplot(data$hit_distance_sc, plot=FALSE)$out
   # data <- data[-which(data$hit_distance_sc %in% outliers),]
-  val <- sum(test$single == 1, na.rm = TRUE)
+  val <- mean(test$single, na.rm = TRUE)
   singles[i] <- val
 }
 singles
@@ -565,7 +361,7 @@ singles
 
 ```{r}
 hit_distance = c()
-for (i in 1:30) {
+for (i in 1:29) {
   test <- mlb_batted_balls_2021 %>% filter(home_team == teams[i])
   # data <- sample_n(test, 1000)
   # outliers <- boxplot(data$hit_distance_sc, plot=FALSE)$out
@@ -578,7 +374,7 @@ hit_distance
 
 ```{r}
 effective_speed = c()
-for (i in 1:30) {
+for (i in 1:29) {
   test <- mlb_batted_balls_2021 %>% filter(home_team == teams[i])
   # data <- sample_n(test, 1000)
   # outliers <- boxplot(data$effective_speed, plot=FALSE)$out
@@ -589,25 +385,85 @@ for (i in 1:30) {
 effective_speed
 ```
 
+
 ```{r}
-df <- data.frame(teams, altitude_rankings, outfield_walls, hit_distance, effective_speed, bases_covered, 
+launch_speed = c()
+for (i in 1:29) {
+  test <- mlb_batted_balls_2021 %>% filter(home_team == teams[i])
+  # data <- sample_n(test, 1000)
+  # outliers <- boxplot(data$effective_speed, plot=FALSE)$out
+  # data <- data[-which(data$effective_speed %in% outliers),]
+  val <- mean(test$launch_speed, na.rm = TRUE)
+  launch_speed[i] <- val
+}
+launch_speed
+```
+
+```{r}
+head(mlb_batted_balls_2021)
+```
+
+
+```{r}
+df <- data.frame(teams, altitude, outfield_height, launch_speed,
+                 hit_distance, effective_speed, bases_covered, 
                  home_runs, triples, doubles, singles)
-names(df) <- c("team", "altitude_rankings", "outfield_walls", "hit_distance", "effective_speed", "bases_covered", 
+names(df) <- c("team", "altitude", "outfield_height", "launch_speed",
+               "hit_distance", "effective_speed", "bases_covered", 
                "home_runs", "triples", "doubles", "singles")
-# ecdf(df$effective_speed)(89.44370)
 ```
 
-```{r}
-#install.packages('toOrdinal')
-library(toOrdinal)
-toOrdinal(5)
-```
 
-```{r}
-toOrdinal(ecdf(df$effective_speed)(df$effective_speed[df$team == 'PHI']) * 100)
-```
+
 ```{r}
 df
+```
+
+
+```{r}
+my_data <- df[, c(2,3,4,5,6,7,8,9,10)]
+```
+
+
+```{r}
+flattenCorrMatrix <- function(cormat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut]
+    )
+}
+```
+
+
+```{r}
+library(Hmisc)
+res2<-rcorr(as.matrix(my_data))
+v1 <- flattenCorrMatrix(res2$r)
+v1
+```
+
+
+```{r}
+v2 <- v1[which(v1$row %in% c("altitude", "outfield_height")),]
+v3 <- head(v2[order(-abs(v2$cor)),], 8)
+v3
+```
+
+
+```{r}
+saveRDS(v3,file="adhvaith_table.rds")
+```
+
+```{r}
+v3 %>%
+gt() %>%
+  tab_header(
+    title = md("**Most Correlated Batting and Stadium Statistics**")
+  ) %>%
+  tab_source_note(md("data courtesy of baseballsavant.com")) %>%
+  opt_table_outline( style = "solid", width = px(5), color = "darkgrey")
 ```
 
 ```{r}
@@ -618,8 +474,4 @@ saveRDS(df,file="percentiles_df.rds")
 saveRDS(mlb_batted_balls_2021,file = "mlb_data.rds")
 ```
 
-```{r}
-#install.packages('floor')
-floor(66.6666)
-```
 
